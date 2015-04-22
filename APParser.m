@@ -12,7 +12,7 @@
 
 // base url
 
-static NSString* base_url = @"http://192.168.20.40/PigChampWeb";
+static NSString* base_url = @"";
 
 
 // base host
