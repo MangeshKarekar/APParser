@@ -1,6 +1,8 @@
 # APParser
 Parsing Class for JSON/XML in Objective C
 
+Created & tested on : XCODE 6.2
+
 The aim for coding this class to simplify parsing and focus on core development.
 
 Before you use the Class You will need to configure the following things in .M file:
