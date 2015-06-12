@@ -5,7 +5,6 @@
 //  Created by Mangesh Karekar.
 //
 //
-
 // *********    PLEASE READ THIS *********
 
 /*
@@ -17,9 +16,7 @@
  @ REQUIRED
  
  base_url          -  DEFINE YOUR BASE URL
- 
- base_host         -  DEFINE YOUR BASE HOST (For Soap)
- 
+ base_host         -  DEFINE YOUR BASE HOST (Required if you are using For Soap)
  
  @ OPTIONAL
 
@@ -31,7 +28,6 @@
  
  
  *****  DEFAULT RESPONSE FROM CALLING ALL THESE FUNCTIONS IS IN NSDictionary EXCEPT FOR XML PARSING*****
- 
  
  */
 
@@ -51,12 +47,9 @@
 @interface APParser : NSObject<NSXMLParserDelegate,NSURLConnectionDataDelegate,APParserDelegate>{
    
     // Common Parameters
-    
     NSMutableData* webData;
     NSURLConnection *theConnection;
-
-
-    // parameters for xml
+    // parameters for xml Parsing
     int operations;
     int maxCount;
     NSString* currentElementString;
@@ -64,14 +57,9 @@
     NSMutableDictionary* parsedXmlDictionary;
     NSString* foundCharacterString;
     NSMutableArray* parsedXmlArray;
-
-    
-    // delegate
-    
+    // delegate instance
     id <APParserDelegate>delegate;
-    
-    // parameters for JSON
-
+    // parameters for JSON parsing
     BOOL isJson;
     
     
@@ -79,14 +67,10 @@
 
 @property (strong,nonatomic) id <APParserDelegate>delegate;
 
-
 +(APParser*) sharedParser;
-
-
 #pragma mark SOAP Functions
 
 /*
- 
 THIS FUNCTIONS PARSE USING SOAP - JSON.
  
  ********    RESPONSE IN RETURENED IN DICTIONARY FORMAT *********
@@ -95,27 +79,13 @@ THIS FUNCTIONS PARSE USING SOAP - JSON.
  
  THESE FUNCTIONS REQUIRE THE FOLOWING ELEMENTS IN DICTIONARY FORMAT
  
- 1. METHONAME: AS KEY - 'methodName' - this method name will be combined with the base url to form a URL
- 2. SOAPACTION AS KEY - 'soapAction'
- 3. PARAMETER DICTIONARY TO SEND AS KEY - 'parameterDict' - these parameters will be concverted to NSData and attached to the URLRequest as HTTPBODY
- 
- 
- Eg: {
- 
- methodName : @"Your method name"
- 
- soapAction : @"Your soap action"
- 
- parameterDict : {username:YOUR USERNAME,password: YOUR PASSWORD}
- 
- }
- 
-
+ 1. METHONAME:  this method name will be combined with the base url to form a URL
+ 2. SOAPACTION
+ 3. PARAMETER DICTIONARY TO SEND - these parameters will be converted to NSData and attached to the URLRequest as HTTPBODY
  
  ******EXPECTED RESULT********
  
     CALL THE DELEAGATE METHODS 'receiveJsonResponse' FOR JSON and 'receiveXMLResponse' for XML.
- 
  
     CHECK FOR 'successBool' : if 'true' then parsing is succesfull and if  'false' then parsing is unsuccesful and dictionay is NULL.
  
@@ -128,12 +98,9 @@ THIS FUNCTIONS PARSE USING SOAP - JSON.
  
  
 */
-
--(void)parseSoapWithJSONSoapContents:(NSDictionary*)soapDict;
-
+-(void)parseJsonUsingSoapWithMethodName:(NSString*)methodName andSoapAction:(NSString*)soapActionString andParameterDictionary:(NSDictionary*)parameterDict;
 
 /*
- 
  THIS FUNCTIONS PARSE USING SOAP - XML.
  
  ********    RESPONSE IN RETURENED IN ARRAY(containing dictionaries) FORMAT *********
@@ -142,24 +109,11 @@ THIS FUNCTIONS PARSE USING SOAP - JSON.
  
  THESE FUNCTIONS REQUIRE THE FOLOWING ELEMENTS IN DICTIONARY FORMAT
  
- 1. METHONAME: AS KEY - 'methodName' - this method name will be combined with the base url to form a URL
- 2. SOAPACTION AS KEY - 'soapAction'
- 3. PARAMETER DICTIONARY TO SEND AS KEY - 'parameterDict' - these parameters will be concverted to NSData and attached to the URLRequest as HTTPBODY
- 
- 
- Eg: {
- 
- methodName : @"Your method name"
- 
- soapAction : @"Your soap action"
- 
- parameterDict : {username:YOUR USERNAME,password: YOUR PASSWORD}
- 
- elementNamesArray : (Array containing header values to catch)
- 
- }
- 
- 
+ 1. METHONAME:  this method name will be combined with the base url to form a URL
+ 2. SOAPACTION
+ 3. PARAMETER DICTIONARY- these parameters will be converted to NSData and attached to the URLRequest as HTTPBODY
+ 4. Content Type
+ 5. Element Names Array - element names to be catched in array
  
  ******EXPECTED RESULT********
  
@@ -178,8 +132,7 @@ THIS FUNCTIONS PARSE USING SOAP - JSON.
  
  */
 
--(void)parseSoapWithXMLwithSoapContents:(NSDictionary*)soapDict;
-
+-(void)parseXMLwithSoapWithMethodName:(NSString*)methodName andSoapAction:(NSString*)soapAction andContentType:(NSString*)contentType andElementsToCatchArray:(NSArray*)elementsArray andParametersToSend:(NSDictionary*)parameterDict;
 
 
 #pragma mark JSON functions
@@ -194,20 +147,8 @@ THIS FUNCTIONS PARSE USING SOAP - JSON.
  
  THESE FUNCTIONS REQUIRE THE FOLOWING ELEMENTS IN DICTIONARY FORMAT
  
- 1. METHONAME: AS KEY - 'methodName' - this method name will be combined with the base url to form a URL
- 2. PARAMETER DICTIONARY TO APPEND TO THE URL - 'parameterDict' - these parameters will be added to the URL to form final GET URL. the 'key' parameter is base parameter and 'value' parameter is value.
- 
- 
-    Eg: {
- 
-        methodName : @"Your method name"
- 
-        parameterDict : {username:YOUR USERNAME,password: YOUR PASSWORD}
- 
-        }
- 
- 
- 
+ 1. METHONAME:  this method name will be combined with the base url to form a URL
+ 2. PARAMETER DICTIONARY TO APPEND TO THE URL -  these parameters will be added to the URL to form final GET URL. the 'key' parameter is base parameter and 'value' parameter is value.
  
  ******EXPECTED RESULT********
  
@@ -224,10 +165,7 @@ THIS FUNCTIONS PARSE USING SOAP - JSON.
  
  */
 
-
--(void)parseJsonWithGetAndContents:(NSDictionary*)jsonDict;
-
-
+-(void)parseJsonUsingGetWithMethodName:(NSString*)methodName andParameterDictionary:(NSDictionary*)parameterDict;
 
 // JSON - POST
 
@@ -237,21 +175,10 @@ THIS FUNCTIONS PARSE USING SOAP - JSON.
 
  ******REQUIREMENTS********
  
- THIS FUNCTION REQUIRES THE FOLOWING ELEMENTS IN DICTIONARY FORMAT
+ THIS FUNCTION REQUIRES THE FOLOWING ELEMENTS
  
- 1. METHONAME: AS KEY - 'methodName' - this method name will be combined with the base url to form a URL
- 2. PARAMETER DICTIONARY TO SEND AS KEY - 'parameterDict' - these parameters will be concverted to NSData and attached to the URLRequest as HTTPBODY
- 
- 
-    Eg: {
- 
-            methodName : @"Your method name"
- 
-            parameterDict : {username:YOUR USERNAME,password: YOUR PASSWORD}
- 
-        }
-
- 
+ 1. METHONAME: AS KEY  - this method name will be combined with the base url to form a URL
+ 2. PARAMETER DICTIONARY TO SEND AS KEY -  these parameters will be converted to NSData and attached to the URLRequest as HTTPBODY
  
  ******EXPECTED RESULT********
  
@@ -262,55 +189,32 @@ THIS FUNCTIONS PARSE USING SOAP - JSON.
 
 */
 
--(void)parsePostJsonWithContents:(NSDictionary*)jsonDict;
-
-
+-(void)parseJsonUsingPostWithMethodName:(NSString*)methodName andParameterDictionary:(NSDictionary*)parameterDict;
 
 // JSON - GET (USING HEADER)
 /*
  ******REQUIREMENTS********
  
- THIS FUNCTION REQUIRES THE FOLOWING ELEMENTS IN DICTIONARY FORMAT
+ THIS FUNCTION REQUIRES THE FOLOWING ELEMENTS
  
- 1. METHONAME: AS KEY - 'methodName' - this method name will be combined with the base url to form a URL
+ 1. METHONAME: AS KEY - this method name will be combined with the base url to form a URL
  2. PARAMETER DICTIONARY TO SEND AS HEADER - 'parameterDict' - the 'key' will be Header Field and 'value' will be value to send
  
- 
- 
-    Eg: {
- 
-            methodName : @"Your method name"
- 
-            parameterDict : {username:YOUR USERNAME,password: YOUR PASSWORD}
- 
-        }
- 
-
  ******EXPECTED RESULT********
  
  CALL THE DELEAGATE METHOD 'receiveJsonResponse'
  
  CHECK FOR 'successBool' : if 'true' then parsing is succesfull and if  'false' then parsing is unsuccesful and dictionay is NULL.
  
- 
  */
 
-
--(void)parseJsonWithGetUsingHeaderValues:(NSDictionary*)jsonDict;
-
-
-
+-(void)parseJsonUsingGetWithHeaderValuesWithMethodName:(NSString*)methodName andParameterDictionary:(NSDictionary*)parameterDict;
 
 #pragma mark OTHER functions
 
 // Function to cancel the NSUrl request
 
 -(void)cancelConnection;
-
-
-
-
-
 
 
 
