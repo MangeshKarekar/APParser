@@ -2,7 +2,7 @@
 //  APParser.m
 //
 //
-//  Created by Mangesh Karekar on 4/16/15.
+//  Created by Mangesh Karekar 
 //  
 //
 
@@ -64,42 +64,21 @@ static APParser *parserInstance = nil;
 
 
 #pragma mark PARSE FUNCTIONS
-
--(void)parseSoapWithJSONSoapContents:(NSDictionary*)soapDict
+-(void)parseJsonUsingSoapWithMethodName:(NSString*)methodName andSoapAction:(NSString*)soapActionString andParameterDictionary:(NSDictionary*)parameterDict
 {
     isJson = YES;
-    
-    NSString * soapActionString = [soapDict objectForKey:@"soapAction"];
-    
-    NSDictionary* parameterDict = [soapDict objectForKey:@"parameterDict"];
-    
     NSString * base = base_url;
-    
     NSLog(@"soapactionstring - %@",soapActionString);
-    
     NSLog(@"parameter dict - %@",parameterDict);
-    
-    NSLog(@"host  - %@",base);
-    
     NSError* error = nil;
-    
-    
-    NSString* finalUrlString = [base stringByAppendingString:[soapDict objectForKey:@"methodName"]];
-    
+    NSString* finalUrlString = [base stringByAppendingString:methodName];
     NSURL* finalUrl = [NSURL URLWithString:finalUrlString];
-    
-    
-    //  NSMutableURLRequest * request = [NSMutableURLRequest requestWithURL:finalUrl];
-    
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc]initWithURL:finalUrl
                                                                cachePolicy:NSURLRequestUseProtocolCachePolicy
                                                            timeoutInterval:timeOutInt];
-    
-    [request addValue: [soapDict objectForKey:@"soapAction"] forHTTPHeaderField:@"SOAPAction"];
-    
+    [request addValue: soapActionString forHTTPHeaderField:@"SOAPAction"];
     [request addValue:base_host forHTTPHeaderField:@"Host"];
-    
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:[soapDict objectForKey:@"parameterDict"] options:kNilOptions error:&error];
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:parameterDict options:kNilOptions error:&error];
     NSString *msgLength = [NSString stringWithFormat:@"%lu", (unsigned long)[jsonData length]];
     [request addValue: @"application/json" forHTTPHeaderField:@"Content-Type"];
     [request addValue: msgLength forHTTPHeaderField:@"Content-Length"];
@@ -109,71 +88,40 @@ static APParser *parserInstance = nil;
     if( theConnection)
     {
         webData = [NSMutableData data];
-        
     }else
     {
         [delegate receiveJsonResponse:NULL withSuccess:NO];
     }
-    
-    
-    
-    
-    
 }
-
--(void)parseJsonWithGetAndContents:(NSDictionary*)jsonDict
+-(void)parseJsonUsingGetWithMethodName:(NSString*)methodName andParameterDictionary:(NSDictionary*)parameterDict
 {
    // NSError* error = nil;
     isJson = YES;
-
-    NSString* methodName;
     NSString* urlString;
     NSString* finalUrlString;
-    NSDictionary* parameterDict;
     NSString* parameterString = @"";
-    
-    methodName = [jsonDict objectForKey:@"methodName"];
     urlString = [NSString stringWithFormat:@"%@%@&",base_url,methodName];
-    parameterDict = [jsonDict objectForKey:@"parameterDict"];
-
-    
     // append final URL string
-    
     NSArray* keysArray = [parameterDict allKeys];
-    
     NSString*  lastObjectString = [keysArray lastObject];
-    
-    
     for (int counter =0; counter< keysArray.count; counter++)
     {
         NSString* tempString;
-      
         if ([lastObjectString isEqualToString:[keysArray objectAtIndex:counter]])
         {
-            
             tempString = [NSString stringWithFormat:@"%@=%@",[keysArray objectAtIndex:counter],[parameterDict objectForKey:[keysArray objectAtIndex:counter]]];
-
         }else
         {
             tempString = [NSString stringWithFormat:@"%@=%@&",[keysArray objectAtIndex:counter],[parameterDict objectForKey:[keysArray objectAtIndex:counter]]];
-
         }
-        
-        
       parameterString = [NSString stringWithFormat:@"%@%@",parameterString,tempString];
-        
-        
     }
-    
     // join the URL
-    
     finalUrlString = [NSString stringWithFormat:@"%@%@",urlString,parameterString];
-    
     NSURL * finalUrl = [NSURL URLWithString:finalUrlString];
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc]initWithURL:finalUrl
                                                                cachePolicy:NSURLRequestUseProtocolCachePolicy
                                                            timeoutInterval:timeOutInt];
-    
     [request addValue: @"application/json" forHTTPHeaderField:@"Content-Type"];
     [request setValue:@"application/json" forHTTPHeaderField:@"Accept"];
     [request setHTTPMethod:@"GET"];
@@ -186,36 +134,19 @@ static APParser *parserInstance = nil;
     {
         [delegate receiveJsonResponse:NULL withSuccess:NO];
     }
-    
 }
 
 
 
-
-
-
-
-
--(void)parsePostJsonWithContents:(NSDictionary*)jsonDict
+-(void)parseJsonUsingPostWithMethodName:(NSString*)methodName andParameterDictionary:(NSDictionary*)parameterDict
 {
-    
     NSError* error = nil;
     isJson = YES;
-    
-    
-    NSString* methodName = [jsonDict objectForKey:@"methodName"];
-    
     NSString* finalUrlString = [NSString stringWithFormat:@"%@%@",base_url,methodName];
-    
     NSURL* finalUrl = [NSURL URLWithString:finalUrlString];
-    
-    NSDictionary* parameterDict = [jsonDict objectForKey:@"parameterDict"];
-    
-    
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc]initWithURL:finalUrl
                                                                cachePolicy:NSURLRequestUseProtocolCachePolicy
                                                            timeoutInterval:timeOutInt];
-    
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:parameterDict options:kNilOptions error:&error];
     NSString *msgLength = [NSString stringWithFormat:@"%lu", (unsigned long)[jsonData length]];
     [request addValue: @"application/json" forHTTPHeaderField:@"Content-Type"];
@@ -231,25 +162,18 @@ static APParser *parserInstance = nil;
     {
         [delegate receiveJsonResponse:NULL withSuccess:NO];
     }
-
 }
 
-
-
--(void)parseSoapWithXMLwithSoapContents:(NSDictionary*)soapDict
+-(void)parseXMLwithSoapWithMethodName:(NSString*)methodName andSoapAction:(NSString*)soapAction andContentType:(NSString*)contentType andElementsToCatchArray:(NSArray*)elementsArray andParametersToSend:(NSDictionary*)parameterDict
 {
     // set flag
     isJson = NO;
     // catch the element names array
-    elementNamesArray = [soapDict objectForKey:@"elementNamesArray"];
+    elementNamesArray = elementsArray;
     // set max count
     maxCount = (int)elementNamesArray.count;
     // XML parsing prepartion
     NSString * base = base_url;
-    NSString* soapMessage = [soapDict objectForKey:@"soapMessage"];
-    NSString* contentType = [soapDict objectForKey:@"contenttype"];
-    NSString *msgLength = [NSString stringWithFormat:@"%d", (int)[soapMessage length]];
-    NSDictionary* parameterDict = [soapDict objectForKey:@"parameterDict"];
     NSArray* keysArray = [parameterDict allKeys];
     NSMutableString* requestString = [[NSMutableString alloc]init];
     for (int counter=0; counter<keysArray.count; counter++)
@@ -264,17 +188,17 @@ static APParser *parserInstance = nil;
         }
         [requestString appendString:stringToJoin];
     }
-    NSString* finalUrlString = [base stringByAppendingString:[soapDict objectForKey:@"methodName"]];
+    NSString *msgLength = [NSString stringWithFormat:@"%d", (int)[requestString length]];
+    NSString* finalUrlString = [base stringByAppendingString:methodName];
     NSURL* finalUrl = [NSURL URLWithString:finalUrlString];
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc]initWithURL:finalUrl
                                                                cachePolicy:NSURLRequestUseProtocolCachePolicy
-                                                           timeoutInterval:100.0];
-    [request addValue: [soapDict objectForKey:@"soapAction"] forHTTPHeaderField:@"SOAPAction"];
+                                                           timeoutInterval:timeOutInt];
+    [request addValue: soapAction forHTTPHeaderField:@"SOAPAction"];
     [request addValue:base_host forHTTPHeaderField:@"Host"];
     [request addValue: contentType forHTTPHeaderField:@"Content-Type"];
     [request addValue: msgLength forHTTPHeaderField:@"Content-Length"];
     [request setHTTPMethod:@"POST"];
-    // [request setHTTPBody: [soapMessage dataUsingEncoding:NSUTF8StringEncoding]];
     NSData *requestData = [NSData dataWithBytes:[requestString UTF8String] length:[requestString length]];
     [request setHTTPBody: requestData];
     theConnection = [[NSURLConnection alloc] initWithRequest:request delegate:self];
@@ -285,41 +209,24 @@ static APParser *parserInstance = nil;
         NSLog(@"Some error occurred in Connection");
         [delegate receivedXmlResponse:NULL andSuccess:NO];
     }
-    
 }
 
-
--(void)parseJsonWithGetUsingHeaderValues:(NSDictionary*)jsonDict
+-(void)parseJsonUsingGetWithHeaderValuesWithMethodName:(NSString*)methodName andParameterDictionary:(NSDictionary*)parameterDict
 {
     isJson = YES;
-    
-    NSString* methodName = [jsonDict objectForKey:@"methodName"];
-    
-    NSDictionary* parameterDict = [jsonDict objectForKey:@"parameterDict"];
-    
     NSString* finalUrlString = [NSString stringWithFormat:@"%@%@",base_url,methodName];
-    
     NSURL* finalUrl = [NSURL URLWithString:finalUrlString];
-
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc]initWithURL:finalUrl
                                                                cachePolicy:NSURLRequestUseProtocolCachePolicy
                                                            timeoutInterval:timeOutInt];
-    
     [request addValue: @"application/json" forHTTPHeaderField:@"Content-Type"];
     [request setHTTPMethod:@"GET"];
-    
     // SET HEADER VALUES
     NSArray* keysArray = [parameterDict allKeys];
-    
     for (int counter =0; counter<keysArray.count; counter++)
     {
-        
         [request setValue:[parameterDict objectForKey:[keysArray objectAtIndex:counter]] forHTTPHeaderField:[keysArray objectAtIndex:counter]];
     }
-    
-    
-    
-    
     theConnection = [[NSURLConnection alloc] initWithRequest:request delegate:self];
     if( theConnection)
     {
@@ -329,15 +236,12 @@ static APParser *parserInstance = nil;
     {
         [delegate receiveJsonResponse:NULL withSuccess:NO];
     }
-
 }
 
 
 
 #pragma mark NSURL DELEGATES
-
 // NSURL CONNECTION DELEGATE
-
 - (void)connection:(NSURLConnection *)connection didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge
 {
     if ([challenge previousFailureCount] > 1)
@@ -492,3 +396,4 @@ static APParser *parserInstance = nil;
 
 
 @end
+
