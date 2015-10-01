@@ -3,7 +3,7 @@
 
     Created & tested on : XCODE 6.2
 
-    The aim of this class to avoid writring repeat code and focus on core development.
+    The aim of this class to avoid writing repeat code and focus on core development.
 
     Before you start using APParser Class, you will need to configure the following things in .M file:
 
